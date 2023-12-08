@@ -7,6 +7,7 @@ import (
 func AddUserRoutes(fiberApp *fiber.App, userController *UserController) {
 	userGroup := fiberApp.Group("/user")
 	userGroup.Post("/create", userController.CreateUserHandler)
+	userGroup.Post("/", userController.GetUserByEmailHandler)
 }
 
 func Init(fiberApp *fiber.App, userStorage *UserStorage) {

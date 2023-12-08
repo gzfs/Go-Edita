@@ -14,10 +14,30 @@ type CreateUserRequest struct {
 	Email string `json:"email"`
 }
 
+type GetUserRequest struct {
+	Email string `json:"email"`
+}
+
 func NewUserController(userStorage *UserStorage) *UserController {
 	return &UserController{
 		userStorage,
 	}
+}
+
+func (userController *UserController) GetUserByEmailHandler(fiberCtx *fiber.Ctx) error {
+	getUserRequest := new(GetUserRequest)
+	if err := fiberCtx.BodyParser(getUserRequest); err != nil {
+		return fiberCtx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Failed to Get User",
+		})
+	}
+	getUser, err := userController.userStorage.GetByEmail(getUserRequest.Email)
+	if err != nil {
+		return fiberCtx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "User not Found",
+		})
+	}
+	return fiberCtx.Status(fiber.StatusOK).JSON(getUser)
 }
 
 func (userController *UserController) CreateUserHandler(fiberCtx *fiber.Ctx) error {
@@ -35,7 +55,7 @@ func (userController *UserController) CreateUserHandler(fiberCtx *fiber.Ctx) err
 
 	if err != nil {
 		return fiberCtx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": err.Error(),
+			"message": "Failed to Create User",
 		})
 	}
 
