@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"crypto/subtle"
 	"gzfs/Go~Edita/config"
 	"gzfs/Go~Edita/internal/database"
 	"gzfs/Go~Edita/internal/users"
@@ -8,6 +10,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/keyauth"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
@@ -52,8 +55,22 @@ func (httpServ *Server) Start() (func(), error) {
 
 func (httpServ *Server) buildServer() (*fiber.App, func(), error) {
 	fiberApp := fiber.New()
+
 	fiberApp.Use(logger.New())
 	fiberApp.Use(cors.New())
+	fiberApp.Use(keyauth.New(keyauth.Config{
+		KeyLookup: "header:Authorization",
+		Validator: func(c *fiber.Ctx, apiKey string) (bool, error) {
+			hashedAPIKey := sha256.Sum256([]byte(apiKey))
+			hashedKey := sha256.Sum256([]byte(httpServ.envConfig.API_KEY))
+
+			if subtle.ConstantTimeCompare(hashedAPIKey[:], hashedKey[:]) == 1 {
+				return true, nil
+			}
+
+			return false, keyauth.ErrMissingOrMalformedAPIKey
+		},
+	}))
 
 	tursoStorage, err := database.New(httpServ.envConfig)
 

@@ -8,8 +8,9 @@ import (
 )
 
 type Env struct {
-	PORT   string `mapstructure:"PORT"`
-	DB_URL string `mapstructure:"DB_URL"`
+	PORT    string `mapstructure:"PORT"`
+	DB_URL  string `mapstructure:"DB_URL"`
+	API_KEY string `mapstructure:"API_KEY"`
 }
 
 func Load() (envConfig Env, err error) {
@@ -41,6 +42,11 @@ func Load() (envConfig Env, err error) {
 
 	if envConfig.DB_URL == "" {
 		err = errors.New("DB_URL must be set")
+		return
+	}
+
+	if envConfig.API_KEY == "" {
+		err = errors.New("API_KEY must be set")
 		return
 	}
 
