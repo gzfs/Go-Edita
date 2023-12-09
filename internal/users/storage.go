@@ -1,22 +1,20 @@
 package users
 
 import (
-	"fmt"
 	"gzfs/Go~Edita/internal/database"
 	"time"
 )
 
 type User struct {
-	ID            string    `json:"id" validate:"required"`
-	First_Name    string    `json:"first_name" validate:"required"`
-	Last_Name     string    `json:"last_name" validate:"required"`
-	Username      string    `json:"username" validate:"required"`
-	Email         string    `json:"email" validate:"required,email"`
-	Token         string    `json:"token"`
-	Admin         bool      `json:"admin"`
-	Refresh_Token string    `json:"refresh_token"`
-	Created_At    time.Time `json:"created_at"`
-	Updated_At    time.Time `json:"updated_at"`
+	ID         string    `json:"id" validate:"required"`
+	First_Name string    `json:"first_name" validate:"required"`
+	Last_Name  string    `json:"last_name" validate:"required"`
+	Username   string    `json:"username" validate:"required"`
+	Email      string    `json:"email" validate:"required,email"`
+	Admin      bool      `json:"admin"`
+	Password   string    `json:"password" validate:"required"`
+	Created_At time.Time `json:"created_at"`
+	Updated_At time.Time `json:"updated_at"`
 }
 
 type UserStorage struct {
@@ -36,9 +34,8 @@ func InitUsersTable(tursoDB *database.TursoStorage) error {
 		last_name VARCHAR(255),
 		username VARCHAR(255),
 		email VARCHAR(255) UNIQUE,
-		token VARCHAR(255),
+		password VARCHAR(60),
 		is_admin BOOLEAN,
-		refresh_token VARCHAR(255),
 		created_at TIMESTAMP,
 		updated_at TIMESTAMP
 		)`
@@ -48,16 +45,15 @@ func InitUsersTable(tursoDB *database.TursoStorage) error {
 }
 
 func (userStorage *UserStorage) Create(createUser *User) error {
-	createUserQuery := "INSERT INTO users (id, first_name, last_name, username, email, is_admin, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-	_, err := userStorage.userDB.TursoDB.Exec(createUserQuery, createUser.ID, createUser.First_Name, createUser.Last_Name, createUser.Username, createUser.Email, createUser.Admin, time.Now(), time.Now())
-	fmt.Println(err)
+	createUserQuery := "INSERT INTO users (id, first_name, last_name, username, email, password, is_admin, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+	_, err := userStorage.userDB.TursoDB.Exec(createUserQuery, createUser.ID, createUser.First_Name, createUser.Last_Name, createUser.Username, createUser.Email, createUser.Password, createUser.Admin, time.Now(), time.Now())
 	return err
 }
 
 func (userStorage *UserStorage) GetByEmail(userEmail string) (*User, error) {
 	var getUser User
-	getUserQuery := "SELECT id, first_name, last_name, username, email, is_admin, created_at, updated_at FROM users WHERE email = ?"
-	err := userStorage.userDB.TursoDB.QueryRow(getUserQuery, userEmail).Scan(&getUser.ID, &getUser.First_Name, &getUser.Last_Name, &getUser.Username, &getUser.Email, &getUser.Admin, &getUser.Created_At, &getUser.Updated_At)
+	getUserQuery := "SELECT id, first_name, last_name, username, email, password, is_admin, created_at, updated_at FROM users WHERE email = ?"
+	err := userStorage.userDB.TursoDB.QueryRow(getUserQuery, userEmail).Scan(&getUser.ID, &getUser.First_Name, &getUser.Last_Name, &getUser.Username, &getUser.Email, &getUser.Password, &getUser.Admin, &getUser.Created_At, &getUser.Updated_At)
 	return &getUser, err
 }
 
