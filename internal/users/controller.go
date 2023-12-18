@@ -70,7 +70,6 @@ func (userController *UserController) Login(fiberCtx *fiber.Ctx) error {
 	_, err = helper.VerifyPassword(user.Password, loginRequest.Password)
 
 	if err != nil {
-		fmt.Println(err)
 		return fiberCtx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Failed to Login",
 		})
